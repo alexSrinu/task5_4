@@ -217,7 +217,7 @@ SET @CityNames = 'Guntur,Amalapuram,Madurai';
 EXEC GetDetailsByCities @CityNames;
 
 ---------------------------------
-CREATE PROCEDURE GetDetailsByStates
+alter PROCEDURE GetDetailsByStates
     @StateNames NVARCHAR(MAX) 
 AS
 BEGIN
@@ -227,7 +227,7 @@ BEGIN
 END
 -----execution---------
 DECLARE @StateNames NVARCHAR(MAX);
-SET @StateNames = 'Telangana'; 
+SET @StateNames = 'Telangana,AP'; 
 
 EXEC  GetDetailsByStates @StateNames;
 ----------------------------
@@ -287,19 +287,19 @@ BEGIN
 
     IF @PageSize = 0 OR @PageSize IS NULL
     BEGIN
-        SET @PageSize = 2; -- Default page size if not provided
+        SET @PageSize = 2; 
     END
 
     DECLARE @Offset INT;
     SET @Offset = (@PageNumber - 1) * @PageSize;
 
-    -- Count total records matching the criteria
+    
     SELECT @TotalCount = COUNT(*)
     FROM tb_task5
     WHERE (@SearchTerm IS NULL OR Name LIKE '%' + @SearchTerm + '%')
       AND (@CityNames IS NULL OR CityName IN (SELECT value FROM STRING_SPLIT(@CityNames, ',')));
 
-    -- Fetch paged records matching the criteria
+    
     SELECT *
     FROM tb_task5
     WHERE (@SearchTerm IS NULL OR Name LIKE '%' + @SearchTerm + '%')
@@ -308,6 +308,17 @@ BEGIN
     OFFSET @Offset ROWS
     FETCH NEXT @PageSize ROWS ONLY;
 END
+ALTER PROCEDURE GetDetailsByStates
+    @StateNames NVARCHAR(MAX),
+    @CityNames NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    SELECT * 
+    FROM tb_task5
+    WHERE StateName IN (SELECT value FROM STRING_SPLIT(@StateNames, ','))
+    AND (@CityNames IS NULL OR CityName IN (SELECT value FROM STRING_SPLIT(@CityNames, ',')))
+END
+EXEC GetDetailsByStates @StateNames = 'Telangana,AP'
 DECLARE @TotalCount INT;
 
 EXEC PageTask
